@@ -1,15 +1,16 @@
 import { PrismaClient } from "@prisma/client";
 
-// Prisma Client instance with production optimizations
+// Prisma Client instance with production optimizations for Neon PostgreSQL
 const prisma = new PrismaClient({
   log: process.env.NODE_ENV === "development" ? ["query", "error"] : ["error"],
   errorFormat: "pretty",
 });
 
-// Database connection test
+// Database connection test using a simple query instead of $connect()
 async function testConnection() {
   try {
-    await prisma.$connect();
+    // Use a simple query to test connection (Prisma connects lazily)
+    await prisma.$queryRaw`SELECT 1`;
     console.log("✅ Database connection established");
     return true;
   } catch (error) {

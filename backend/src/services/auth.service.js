@@ -2,6 +2,7 @@ import { prisma } from "../config/database.js";
 import { hashPassword, comparePassword } from "../utils/password.js";
 import { generateToken } from "../utils/jwt.js";
 import { generateOTP, storeOTP, verifyOTP, deleteOTP } from "../utils/otp.js";
+import { sendOTPEmail } from "../utils/email.js";
 import { UserRole } from "@prisma/client";
 
 /**
@@ -85,10 +86,15 @@ export async function sendOTP(email) {
   const otp = generateOTP();
   await storeOTP(email, otp);
 
-  // TODO: Send OTP via email using nodemailer
-  // For now, return OTP in development
-  if (process.env.NODE_ENV === "development") {
-    console.log(`📧 OTP for ${email}: ${otp}`);
+  // Send OTP via email
+  try {
+    await sendOTPEmail(email, otp);
+  } catch (error) {
+    // If email fails, log error but still return OTP for development
+    console.error(`Failed to send email to ${email}:`, error.message);
+    if (process.env.NODE_ENV === "development") {
+      console.log(`📧 OTP for ${email}: ${otp}`);
+    }
   }
 
   return otp;

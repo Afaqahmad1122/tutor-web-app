@@ -6,6 +6,7 @@ import {
   getUserById,
   resendOTP,
 } from "../services/auth.service.js";
+import { testEmailConfig, verifyEmailConfig } from "../utils/email.js";
 
 /**
  * Register new user
@@ -195,6 +196,59 @@ export async function getMe(req, res) {
     res.status(404).json({
       success: false,
       message: error.message || "User not found",
+    });
+  }
+}
+
+/**
+ * Test email configuration
+ * POST /api/auth/test-email
+ * For testing email setup only
+ */
+export async function testEmail(req, res) {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: "Email address is required for testing",
+      });
+    }
+
+    // First verify email configuration
+    const isVerified = await verifyEmailConfig();
+
+    if (!isVerified) {
+      return res.status(500).json({
+        success: false,
+        message:
+          "Email configuration verification failed. Please check your .env file.",
+      });
+    }
+
+    // Send test email
+    const result = await testEmailConfig(email);
+
+    if (result.success) {
+      res.status(200).json({
+        success: true,
+        message: result.message,
+        data: {
+          messageId: result.messageId,
+          sentTo: email,
+        },
+      });
+    } else {
+      res.status(500).json({
+        success: false,
+        message: result.message,
+      });
+    }
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message || "Failed to test email configuration",
     });
   }
 }
