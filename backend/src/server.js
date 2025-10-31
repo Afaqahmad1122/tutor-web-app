@@ -1,10 +1,6 @@
 import dotenv from "dotenv";
 import app from "./app.js";
-import {
-  prisma,
-  testConnection,
-  disconnectDatabase,
-} from "./config/database.js";
+import { testConnection, disconnectDatabase } from "./config/database.js";
 
 dotenv.config();
 

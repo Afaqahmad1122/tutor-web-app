@@ -24,6 +24,10 @@ model User {
   sentReviews      Review[]
   tutorProfile     TutorProfile?
 
+  @@index([role])
+  @@index([verified])
+  @@index([active])
+  @@index([createdAt])
   @@map("users")
 }
 
@@ -53,6 +57,11 @@ model TutorProfile {
   user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   subjects        TutorSubject[]
 
+  @@index([verified])
+  @@index([ratingAvg])
+  @@index([location])
+  @@index([verified, ratingAvg])
+  @@index([createdAt])
   @@map("tutor_profiles")
 }
 
@@ -88,6 +97,8 @@ model Availability {
   updatedAt DateTime     @updatedAt @map("updated_at")
   tutor     TutorProfile @relation(fields: [tutorId], references: [id], onDelete: Cascade)
 
+  @@index([tutorId])
+  @@index([tutorId, dayOfWeek])
   @@map("availabilities")
 }
 
@@ -101,7 +112,6 @@ model Booking {
   location      String?
   status        BookingStatus @default(PENDING)
   notes         String?
-  paymentStatus PaymentStatus @default(PENDING) @map("payment_status")
   createdAt     DateTime      @default(now()) @map("created_at")
   updatedAt     DateTime      @updatedAt @map("updated_at")
   student       User          @relation("StudentBookings", fields: [studentId], references: [id], onDelete: Cascade)
@@ -109,6 +119,13 @@ model Booking {
   messages      Message[]
   reviews       Review?
 
+  @@index([tutorId])
+  @@index([studentId])
+  @@index([status])
+  @@index([sessionDate])
+  @@index([tutorId, status, sessionDate])
+  @@index([studentId, status, sessionDate])
+  @@index([createdAt])
   @@map("bookings")
 }
 
@@ -127,6 +144,12 @@ model Review {
   student   User         @relation(fields: [studentId], references: [id], onDelete: Cascade)
   tutor     TutorProfile @relation(fields: [tutorId], references: [id], onDelete: Cascade)
 
+  @@index([tutorId])
+  @@index([studentId])
+  @@index([bookingId])
+  @@index([approved])
+  @@index([tutorId, approved])
+  @@index([createdAt])
   @@map("reviews")
 }
 
@@ -142,6 +165,13 @@ model Message {
   receiver   User     @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
   sender     User     @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
 
+  @@index([senderId])
+  @@index([receiverId])
+  @@index([bookingId])
+  @@index([readStatus])
+  @@index([receiverId, readStatus])
+  @@index([receiverId, createdAt])
+  @@index([createdAt])
   @@map("messages")
 }
 
@@ -154,6 +184,9 @@ model Favorite {
   tutor     TutorProfile @relation(fields: [tutorId], references: [id], onDelete: Cascade)
 
   @@unique([studentId, tutorId])
+  @@index([studentId])
+  @@index([tutorId])
+  @@index([createdAt])
   @@map("favorites")
 }
 
@@ -183,11 +216,4 @@ enum BookingStatus {
   COMPLETED
   CANCELLED
   REJECTED
-}
-
-enum PaymentStatus {
-  PENDING
-  PAID
-  CASH
-  CANCELLED
 }
