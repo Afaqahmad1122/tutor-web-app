@@ -1,0 +1,193 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String        @id @default(cuid())
+  email            String        @unique
+  phone            String?       @unique
+  passwordHash     String        @map("password_hash")
+  role             UserRole      @default(STUDENT)
+  verified         Boolean       @default(false)
+  active           Boolean       @default(true)
+  createdAt        DateTime      @default(now()) @map("created_at")
+  updatedAt        DateTime      @updatedAt @map("updated_at")
+  bookings         Booking[]     @relation("StudentBookings")
+  favorites        Favorite[]
+  receivedMessages Message[]     @relation("ReceivedMessages")
+  sentMessages     Message[]     @relation("SentMessages")
+  sentReviews      Review[]
+  tutorProfile     TutorProfile?
+
+  @@map("users")
+}
+
+model TutorProfile {
+  id              String           @id @default(cuid())
+  userId          String           @unique @map("user_id")
+  name            String
+  photoUrl        String?          @map("photo_url")
+  bio             String?
+  gender          String?
+  qualification   String?
+  experienceYears Int?             @default(0) @map("experience_years")
+  location        String?
+  address         String?
+  teachingMethod  TeachingMethod[] @map("teaching_method")
+  hourlyRate      Float?           @map("hourly_rate")
+  monthlyRate     Float?           @map("monthly_rate")
+  verified        Boolean          @default(false)
+  ratingAvg       Float?           @default(0) @map("rating_avg")
+  totalReviews    Int              @default(0) @map("total_reviews")
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+  availability    Availability[]
+  bookings        Booking[]        @relation("TutorBookings")
+  favorites       Favorite[]
+  reviews         Review[]
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subjects        TutorSubject[]
+
+  @@map("tutor_profiles")
+}
+
+model Subject {
+  id            String         @id @default(cuid())
+  name          String
+  level         SubjectLevel
+  tutorSubjects TutorSubject[]
+
+  @@unique([name, level])
+  @@map("subjects")
+}
+
+model TutorSubject {
+  id        String       @id @default(cuid())
+  tutorId   String       @map("tutor_id")
+  subjectId String       @map("subject_id")
+  createdAt DateTime     @default(now()) @map("created_at")
+  subject   Subject      @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  tutor     TutorProfile @relation(fields: [tutorId], references: [id], onDelete: Cascade)
+
+  @@unique([tutorId, subjectId])
+  @@map("tutor_subjects")
+}
+
+model Availability {
+  id        String       @id @default(cuid())
+  tutorId   String       @map("tutor_id")
+  dayOfWeek Int          @map("day_of_week")
+  startTime String       @map("start_time")
+  endTime   String       @map("end_time")
+  createdAt DateTime     @default(now()) @map("created_at")
+  updatedAt DateTime     @updatedAt @map("updated_at")
+  tutor     TutorProfile @relation(fields: [tutorId], references: [id], onDelete: Cascade)
+
+  @@map("availabilities")
+}
+
+model Booking {
+  id            String        @id @default(cuid())
+  tutorId       String        @map("tutor_id")
+  studentId     String        @map("student_id")
+  sessionDate   DateTime      @map("session_date")
+  sessionTime   String        @map("session_time")
+  duration      Int?          @default(60)
+  location      String?
+  status        BookingStatus @default(PENDING)
+  notes         String?
+  paymentStatus PaymentStatus @default(PENDING) @map("payment_status")
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+  student       User          @relation("StudentBookings", fields: [studentId], references: [id], onDelete: Cascade)
+  tutor         TutorProfile  @relation("TutorBookings", fields: [tutorId], references: [id], onDelete: Cascade)
+  messages      Message[]
+  reviews       Review?
+
+  @@map("bookings")
+}
+
+model Review {
+  id        String       @id @default(cuid())
+  tutorId   String       @map("tutor_id")
+  studentId String       @map("student_id")
+  bookingId String?      @unique @map("booking_id")
+  rating    Int
+  comment   String?
+  aspects   Json?
+  approved  Boolean      @default(false)
+  createdAt DateTime     @default(now()) @map("created_at")
+  updatedAt DateTime     @updatedAt @map("updated_at")
+  booking   Booking?     @relation(fields: [bookingId], references: [id])
+  student   User         @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  tutor     TutorProfile @relation(fields: [tutorId], references: [id], onDelete: Cascade)
+
+  @@map("reviews")
+}
+
+model Message {
+  id         String   @id @default(cuid())
+  senderId   String   @map("sender_id")
+  receiverId String   @map("receiver_id")
+  bookingId  String?  @map("booking_id")
+  message    String
+  readStatus Boolean  @default(false) @map("read_status")
+  createdAt  DateTime @default(now()) @map("created_at")
+  booking    Booking? @relation(fields: [bookingId], references: [id])
+  receiver   User     @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+  sender     User     @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@map("messages")
+}
+
+model Favorite {
+  id        String       @id @default(cuid())
+  studentId String       @map("student_id")
+  tutorId   String       @map("tutor_id")
+  createdAt DateTime     @default(now()) @map("created_at")
+  student   User         @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  tutor     TutorProfile @relation(fields: [tutorId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, tutorId])
+  @@map("favorites")
+}
+
+enum UserRole {
+  TUTOR
+  STUDENT
+  ADMIN
+}
+
+enum TeachingMethod {
+  ONLINE
+  IN_PERSON
+  HYBRID
+}
+
+enum SubjectLevel {
+  PRIMARY
+  SECONDARY
+  O_LEVEL
+  A_LEVEL
+  UNIVERSITY
+}
+
+enum BookingStatus {
+  PENDING
+  ACCEPTED
+  COMPLETED
+  CANCELLED
+  REJECTED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  CASH
+  CANCELLED
+}
