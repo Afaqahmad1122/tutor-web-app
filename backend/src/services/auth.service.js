@@ -163,6 +163,13 @@ export async function loginUser(email, password) {
     throw new Error("Account is suspended");
   }
 
+  // Check if user is verified
+  if (!user.verified) {
+    throw new Error(
+      "Please verify your email before logging in. Check your email for OTP."
+    );
+  }
+
   // Verify password
   const isPasswordValid = await comparePassword(password, user.passwordHash);
 
