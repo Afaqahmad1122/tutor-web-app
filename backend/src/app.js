@@ -55,8 +55,9 @@ app.get("/health", (req, res) => {
   });
 });
 
-// API routes (will be added later)
-// app.use('/api/auth', (await import('./routes/auth.routes.js')).default);
+// API routes
+import authRoutes from "./routes/auth.routes.js";
+app.use("/api/auth", authRoutes);
 // app.use('/api/tutors', (await import('./routes/tutor.routes.js')).default);
 // app.use('/api/bookings', (await import('./routes/booking.routes.js')).default);
 // app.use('/api/reviews', (await import('./routes/review.routes.js')).default);

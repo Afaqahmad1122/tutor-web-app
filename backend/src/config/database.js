@@ -2,10 +2,7 @@ import { PrismaClient } from "@prisma/client";
 
 // Prisma Client instance with production optimizations
 const prisma = new PrismaClient({
-  log:
-    process.env.NODE_ENV === "development"
-      ? ["query", "error", "warn"]
-      : ["error"],
+  log: process.env.NODE_ENV === "development" ? ["query", "error"] : ["error"],
   errorFormat: "pretty",
 });
 
