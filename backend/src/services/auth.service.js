@@ -90,11 +90,8 @@ export async function sendOTP(email) {
   try {
     await sendOTPEmail(email, otp);
   } catch (error) {
-    // If email fails, log error but still return OTP for development
+    // If email fails, log error
     console.error(`Failed to send email to ${email}:`, error.message);
-    if (process.env.NODE_ENV === "development") {
-      console.log(`📧 OTP for ${email}: ${otp}`);
-    }
   }
 
   return otp;

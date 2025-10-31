@@ -38,10 +38,6 @@ function startCleanupTimer() {
     }
 
     keysToDelete.forEach((email) => otpStore.delete(email));
-
-    if (keysToDelete.length > 0) {
-      console.log(`🧹 Cleaned up ${keysToDelete.length} expired OTP(s)`);
-    }
   }, CLEANUP_INTERVAL_MS);
 }
 

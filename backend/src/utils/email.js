@@ -29,7 +29,6 @@ export async function verifyEmailConfig() {
   try {
     const transporter = createTransporter();
     await transporter.verify();
-    console.log("✅ Email server is ready to send messages");
     return true;
   } catch (error) {
     console.error("❌ Email configuration error:", error.message);
@@ -84,8 +83,6 @@ export async function sendOTPEmail(to, otp) {
     };
 
     const info = await transporter.sendMail(mailOptions);
-
-    console.log(`📧 OTP email sent to ${to}. Message ID: ${info.messageId}`);
 
     return {
       success: true,

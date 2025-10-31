@@ -30,11 +30,11 @@ app.use(cookieParser());
 // Compression middleware
 app.use(compression());
 
-// Logging middleware
-if (process.env.NODE_ENV === "development") {
-  app.use(morgan("dev"));
+// Logging middleware (only log errors and important requests)
+if (process.env.NODE_ENV === "production") {
+  app.use(morgan("combined", { skip: (req, res) => res.statusCode < 400 }));
 } else {
-  app.use(morgan("combined"));
+  app.use(morgan("short", { skip: (req, res) => res.statusCode < 400 }));
 }
 
 // Rate limiting
